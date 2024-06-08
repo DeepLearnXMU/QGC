@@ -26,7 +26,7 @@ save_path=${save_dir}/longllmlingua
 mkdir -p $save_path
 
 accelerate launch --config_file config/bf16.yaml \
-    src/inference.py \
+    src/infer.py \
     --data_path $data_path \
     --compressor_path $compressor_path \
     --lm_model_name $lm_model_name \
