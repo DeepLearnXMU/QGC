@@ -24,7 +24,7 @@ class JointArguments:
 
     pool_window_size: int = 4
     random_pool_window_size: bool = True
-    cand_pool_window_sizes: List[int] = [4, 6, 8, 10]
+    cand_pool_window_sizes: List[int] = None
 
     train_batch_size: int = 4
     eval_batch_size: int = 4
