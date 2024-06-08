@@ -1,7 +1,3 @@
-export http_proxy=http://bj-rd-proxy.byted.org:3128
-export https_proxy=http://bj-rd-proxy.byted.org:3128
-python -c "import nltk; nltk.download('punkt')"
-
 batch_size=4
 lm_model_name=longchat
 compressor_hidden_size=4096
