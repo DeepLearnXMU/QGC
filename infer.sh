@@ -1,4 +1,4 @@
-data_path=/path-to-data
+data_path=/path-to-data-file
 compressor_path=/path-to-compressor
 lm_model_path=/path-to-longchat-13b
 from_checkpoint=/path-to-checkpoint
