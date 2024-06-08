@@ -231,7 +231,7 @@ def main(args: JointArguments):
         ce_losses_host = ()
         kd_losses_host = ()
         for inputs in dataloader:
-            bsz = inputs['llm_ans_tokens'].size(0)
+            bsz = inputs['llm_tgt_tokens'].size(0)
             loss, ce_loss, kd_loss = prediction_step(model, inputs)
             losses_host += (accelerator.gather_for_metrics(loss.repeat(bsz)),)
             ce_losses_host += (accelerator.gather_for_metrics(ce_loss.repeat(bsz)),)
