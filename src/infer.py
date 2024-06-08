@@ -121,14 +121,14 @@ def main(args: JointArguments):
 
         benchmark_outputs = [
             {
-                'document': document,
+                'question': question,
                 'raw_generation': raw_generation,
                 'ext_generation': ext_generation,
                 'answers': answers,
                 'score': score,
             }
-            for document, raw_generation, ext_generation, answers, score in zip(
-                llm_tokenizer.batch_decode(inputs['llm_doc_tokens']),
+            for question, raw_generation, ext_generation, answers, score in zip(
+                llm_tokenizer.batch_decode(inputs['llm_que_tokens']),
                 llm_tokenizer.batch_decode(outputs),
                 llm_generations,
                 benchmark_answers,
