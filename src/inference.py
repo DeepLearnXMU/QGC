@@ -56,11 +56,11 @@ def main(args: JointArguments):
     accelerator = Accelerator()
     device = accelerator.device
     
-    logger.info('load encoder ...')
-    encoder_config = transformers.AutoConfig.from_pretrained(args.compressor_path)
-    encoder_config.num_hidden_layers = args.num_compressor_layers
-    encoder = transformers.LlamaModel.from_pretrained(args.compressor_path, config=encoder_config)
-    encoder.resize_token_embeddings(len(enc_tokenizer))
+    logger.info('load compressor ...')
+    compressor_config = transformers.AutoConfig.from_pretrained(args.compressor_path)
+    compressor_config.num_hidden_layers = args.num_compressor_layers
+    compressor = transformers.LlamaModel.from_pretrained(args.compressor_path, config=compressor_config)
+    compressor.resize_token_embeddings(len(enc_tokenizer))
 
     pooling_layer = InferPoolingLayer(args)
 
@@ -83,9 +83,9 @@ def main(args: JointArguments):
         raise NotImplementedError(args.lm_model_name)
 
     logger.info(f'build model and load checkpoint from {args.from_checkpoint}')
-    model = ModelWithQGC(args, encoder=encoder, pooling_layer=pooling_layer, lm_model=lm_model)
+    model = ModelWithQGC(args, compressor=compressor, pooling_layer=pooling_layer, lm_model=lm_model)
     model.semantic_alignment_layer.load_state_dict(torch.load(os.path.join(args.from_checkpoint, FFN_WEIGHTS_NAME), map_location='cpu'))
-    model.encoder.load_state_dict(torch.load(os.path.join(args.from_checkpoint, ENCODER_WEIGHTS_NAME), map_location='cpu'))
+    model.compressor.load_state_dict(torch.load(os.path.join(args.from_checkpoint, COMPRESSOR_WEIGHTS_NAME), map_location='cpu'))
     model.pooling_layer.load_state_dict(torch.load(os.path.join(args.from_checkpoint, POOLING_WEIGHTS_NAME), map_location='cpu'))
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.learning_rate)

@@ -130,7 +130,7 @@ def main(args: JointArguments):
     if args.from_checkpoint is not None:
         logger.info(f'load model checkpoint from {args.from_checkpoint}')
         model.semantic_alignment_layer.load_state_dict(torch.load(os.path.join(args.from_checkpoint, FFN_WEIGHTS_NAME), map_location='cpu'))
-        model.encoder.load_state_dict(torch.load(os.path.join(args.from_checkpoint, ENCODER_WEIGHTS_NAME), map_location='cpu'))
+        model.compressor.load_state_dict(torch.load(os.path.join(args.from_checkpoint, COMPRESSOR_WEIGHTS_NAME), map_location='cpu'))
         model.pooling_layer.load_state_dict(torch.load(os.path.join(args.from_checkpoint, POOLING_WEIGHTS_NAME), map_location='cpu'))
 
 
@@ -278,10 +278,10 @@ def main(args: JointArguments):
         logger.info(f"Saving model checkpoint to {output_dir}")
         torch.save(args, os.path.join(output_dir, TRAINING_ARGS_NAME))
 
-        encoder_state_dict = accelerator.get_state_dict(model.encoder)
+        compressor_state_dict = accelerator.get_state_dict(model.compressor)
         pooling_layer_state_dict = accelerator.get_state_dict(model.pooling_layer)
         ffn_state_dict = accelerator.get_state_dict(model.semantic_alignment_layer)
-        torch.save(encoder_state_dict, os.path.join(output_dir, ENCODER_WEIGHTS_NAME))
+        torch.save(compressor_state_dict, os.path.join(output_dir, COMPRESSOR_WEIGHTS_NAME))
         torch.save(pooling_layer_state_dict, os.path.join(output_dir, POOLING_WEIGHTS_NAME))
         torch.save(ffn_state_dict, os.path.join(output_dir, FFN_WEIGHTS_NAME))
     

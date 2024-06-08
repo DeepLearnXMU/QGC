@@ -41,15 +41,15 @@ class ModelWithQGC(LlamaPreTrainedModel, CCGenerationMixin):
     def context_encoder(self, input_ids, attention_mask):
         position_ids = attention_mask.long().cumsum(-1) - 1
         position_ids.masked_fill_(~attention_mask.bool(), 1)
-        hidden_states = self.encoder.embed_tokens(input_ids)
+        hidden_states = self.compressor.embed_tokens(input_ids)
 
         attention_mask = expand_mask(
             attention_mask, hidden_states.dtype, attention_mask.size(1)
         ).to(hidden_states.device)
         
         for idx in range(self.args.num_compressor_encoder_layers):
-            encoder_layer = self.encoder.layers[idx]
-            layer_outputs = encoder_layer(
+            layer = self.compressor.layers[idx]
+            layer_outputs = layer(
                 hidden_states,
                 attention_mask=attention_mask,
                 position_ids=position_ids,
@@ -57,7 +57,7 @@ class ModelWithQGC(LlamaPreTrainedModel, CCGenerationMixin):
             hidden_states = layer_outputs[0]
         return hidden_states
     
-    def review_encoder(self, hidden_states, attention_mask):
+    def reviewing_layer(self, hidden_states, attention_mask):
         position_ids = attention_mask.long().cumsum(-1) - 1
         position_ids.masked_fill_(~attention_mask.bool(), 1)
         
@@ -66,14 +66,14 @@ class ModelWithQGC(LlamaPreTrainedModel, CCGenerationMixin):
         ).to(hidden_states.device)
         
         for idx in range(self.args.num_compressor_encoder_layers, self.args.num_compressor_layers):
-            encoder_layer = self.encoder.layers[idx]
-            layer_outputs = encoder_layer(
+            layer = self.compressor.layers[idx]
+            layer_outputs = layer(
                 hidden_states,
                 attention_mask=attention_mask,
                 position_ids=position_ids,
             )
             hidden_states = layer_outputs[0]
-        hidden_states = self.encoder.norm(hidden_states)
+        hidden_states = self.compressor.norm(hidden_states)
         return hidden_states
 
     def compress_doc(
@@ -115,7 +115,7 @@ class ModelWithQGC(LlamaPreTrainedModel, CCGenerationMixin):
         reviewing_input_hidden_states = torch.cat([context_hidden_states, weighted_hidden_states], dim=1)
         reviewing_input_attention_mask = torch.cat([context_attention_mask, weighted_attention_mask], dim=1)
         
-        reviewing_hidden_states = self.review_encoder(reviewing_input_hidden_states, reviewing_input_attention_mask)
+        reviewing_hidden_states = self.reviewing_layer(reviewing_input_hidden_states, reviewing_input_attention_mask)
         final_hidden_states = self.semantic_alignment_layer(reviewing_hidden_states[:, -weighted_hidden_states.size(1):])
         
         prefix_embeds = self.llm_embed_tokens(llm_pfx_tokens)
