@@ -20,8 +20,7 @@ lm_model_path=/path-to-longchat-13b
 # lm_model_hidden_size=4096
 # lm_model_path=/path-to-llama-2-7b
 
-dataset=nq
-data_path=data/${dataset}
+data_path=/path-to-data
 dev_steps=500
 test_steps=500
 save_steps=1000
