@@ -96,7 +96,7 @@ def main(args: JointArguments):
     @torch.no_grad()
     def benchmark_step(model, inputs):        
         model.eval()
-        benchmark_answers = inputs['benchmark']
+        benchmark_answers = inputs['answers']
 
         cmp_llm_doc_embeds, cmp_llm_doc_mask = model.compress_doc(**inputs)
         first_llm_inputs = model.construct_llm_inputs_for_generation(

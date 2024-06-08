@@ -12,7 +12,7 @@ class JointArguments:
     lm_model_name: str = 'longchat'
     num_compressor_layers: int = 4
     num_compressor_encoder_layers: int = 2
-    fix_compressor_mlp_parameters: bool = True
+    fix_compressor_mlp_parameters: bool = False
     num_attention_heads: int = 32
     attn_doc_topp: float = 0.25
     compressor_hidden_size: int = 4096
@@ -23,7 +23,7 @@ class JointArguments:
     generation_split_token: str = None
 
     pool_window_size: int = 4
-    random_pool_window_size: bool = True
+    random_pool_window_size: bool = False
     cand_pool_window_sizes: List[int] = None
 
     train_batch_size: int = 4
@@ -41,7 +41,7 @@ class JointArguments:
     test_steps: int = 500
     save_steps: int = 1000
 
-    do_benchmark: bool = True
+    do_benchmark: bool = False
     benchmark_dev_steps: int = 1000
     benchmark_test_steps: int = 1000
     benchmark_metric: str = None
@@ -63,11 +63,11 @@ class JointArguments:
     num_gold_documents: int = 1
     use_answer_as_target: bool = False
     instruction_name: str = 'base'
-    gold_first_for_kd: bool = True
+    gold_first_for_kd: bool = False
 
     min_num_documents: int = 1
     max_num_documents: int = 5
-    random_num_documents: bool = True
+    random_num_documents: bool = False
 
     max_new_tokens: int = 100
     max_doc_tokens: int = 512
