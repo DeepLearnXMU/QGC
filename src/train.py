@@ -22,7 +22,7 @@ def get_model_param_count(model, trainable_only):
             param_count += param.numel()
     return param_count
 
-def load_dataloader(args: JointArguments, enc_tokenizer, llm_tokenizer, split):
+def load_dataloader(args: JointArguments, cmp_tokenizer, llm_tokenizer, split):
     if hasattr(args, f'{split}_data_path') and getattr(args, f'{split}_data_path') != None:
         filepath = getattr(args, f'{split}_data_path')
     else:
@@ -35,7 +35,7 @@ def load_dataloader(args: JointArguments, enc_tokenizer, llm_tokenizer, split):
 
     dataset = TrainDataset(
         filepath=filepath,
-        enc_tokenizer=enc_tokenizer,
+        cmp_tokenizer=cmp_tokenizer,
         llm_tokenizer=llm_tokenizer,
         max_doc_tokens=args.max_doc_tokens,
         que_mask_ratio=args.question_mask_ratio if is_training else None,
@@ -61,17 +61,17 @@ def main(args: JointArguments):
     transformers.trainer_utils.set_seed(args.seed)
 
     logger.info('load tokenizer ...')
-    enc_tokenizer = transformers.AutoTokenizer.from_pretrained(args.compressor_path)
+    cmp_tokenizer = transformers.AutoTokenizer.from_pretrained(args.compressor_path)
     llm_tokenizer = transformers.AutoTokenizer.from_pretrained(args.lm_model_path)
-    enc_tokenizer.pad_token = enc_tokenizer.unk_token
+    cmp_tokenizer.pad_token = cmp_tokenizer.unk_token
 
     additional_special_tokens = ['<DOC>', '<QUE>', '<CMP>']
-    enc_tokenizer.add_special_tokens({"additional_special_tokens": additional_special_tokens})
+    cmp_tokenizer.add_special_tokens({"additional_special_tokens": additional_special_tokens})
 
     logger.info('load dataset ...')
-    train_dataloader = load_dataloader(args, enc_tokenizer, llm_tokenizer, 'train')
-    dev_dataloader = load_dataloader(args, enc_tokenizer, llm_tokenizer, 'dev')
-    test_dataloader = load_dataloader(args, enc_tokenizer, llm_tokenizer, 'test')
+    train_dataloader = load_dataloader(args, cmp_tokenizer, llm_tokenizer, 'train')
+    dev_dataloader = load_dataloader(args, cmp_tokenizer, llm_tokenizer, 'dev')
+    test_dataloader = load_dataloader(args, cmp_tokenizer, llm_tokenizer, 'test')
 
     if args.generation_split_token is None:
         args.generation_split_token = (
@@ -86,7 +86,7 @@ def main(args: JointArguments):
     compressor_config = transformers.AutoConfig.from_pretrained(args.compressor_path)
     compressor_config.num_hidden_layers = args.num_compressor_layers
     compressor = transformers.LlamaModel.from_pretrained(args.compressor_path, config=compressor_config)
-    compressor.resize_token_embeddings(len(enc_tokenizer))
+    compressor.resize_token_embeddings(len(cmp_tokenizer))
     with torch.no_grad():
         compressor.get_input_embeddings().weight[-len(additional_special_tokens):] \
             = compressor.get_input_embeddings().weight[:-len(additional_special_tokens)].mean(dim=0)
@@ -205,14 +205,14 @@ def main(args: JointArguments):
 
         benchmark_outputs = [
             {
-                'document': document,
+                'question': question,
                 'raw_generation': raw_generation,
                 'ext_generation': ext_generation,
                 'answers': answers,
                 'score': score
             }
-            for document, raw_generation, ext_generation, answers, score in zip(
-                llm_tokenizer.batch_decode(inputs['llm_doc_tokens']),
+            for question, raw_generation, ext_generation, answers, score in zip(
+                llm_tokenizer.batch_decode(inputs['llm_que_tokens']),
                 llm_tokenizer.batch_decode(outputs),
                 generations,
                 benchmark_answers,

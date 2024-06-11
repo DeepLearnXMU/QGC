@@ -189,8 +189,8 @@ class InferDataset(Dataset):
         enc_tokenizer,
         llm_tokenizer,
         max_doc_tokens,
+        instruction_name,
         max_num_documents=None,
-        instruction_text='base',
         **kwargs,
     ):
         self.dataset = load_dataset('json', data_files=filepath, split='train')
@@ -204,7 +204,7 @@ class InferDataset(Dataset):
             self.llm_tokenizer.pad_token = llm_tokenizer.unk_token
             self.llm_tokenizer.pad_token_id = llm_tokenizer.unk_token_id
 
-        self.instruction_text = instruction_text
+        self.instruction_text = instructions_map[instruction_name]
 
 
     def __len__(self):

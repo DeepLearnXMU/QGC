@@ -16,10 +16,10 @@ from src.utils.metrics import benchmark_function_map
 logger = get_logger(__name__)
 
 
-def load_dataloader(args: JointArguments, enc_tokenizer, llm_tokenizer):
+def load_dataloader(args: JointArguments, cmp_tokenizer, llm_tokenizer):
     dataset = InferDataset(
         filepath=args.data_path,
-        enc_tokenizer=enc_tokenizer,
+        cmp_tokenizer=cmp_tokenizer,
         llm_tokenizer=llm_tokenizer,
         max_doc_tokens=args.max_doc_tokens,
         max_num_documents=args.num_eval_documents,
@@ -38,20 +38,20 @@ def main(args: JointArguments):
     transformers.trainer_utils.set_seed(args.seed)
 
     logger.info('load tokenizer ...')
-    enc_tokenizer = transformers.AutoTokenizer.from_pretrained(args.compressor_path)
+    cmp_tokenizer = transformers.AutoTokenizer.from_pretrained(args.compressor_path)
     llm_tokenizer = transformers.AutoTokenizer.from_pretrained(args.lm_model_path)
-    enc_tokenizer.pad_token = enc_tokenizer.unk_token
+    cmp_tokenizer.pad_token = cmp_tokenizer.unk_token
 
     additional_special_tokens = ['<DOC>', '<QUE>', '<CMP>']
-    enc_tokenizer.add_special_tokens({"additional_special_tokens": additional_special_tokens})
+    cmp_tokenizer.add_special_tokens({"additional_special_tokens": additional_special_tokens})
     
     generation_end_token = (
-        '</s>' if args.lm_model_name == 'longchat' or 'natural_questions' in args.data_path
+        '</s>' if args.lm_model_name == 'longchat' or 'nq' in args.data_path
         else '\n\n'
     )
 
     logger.info('load dataset ...')
-    test_dataloader = load_dataloader(args, enc_tokenizer, llm_tokenizer)
+    test_dataloader = load_dataloader(args, cmp_tokenizer, llm_tokenizer)
 
     accelerator = Accelerator()
     device = accelerator.device
@@ -60,7 +60,7 @@ def main(args: JointArguments):
     compressor_config = transformers.AutoConfig.from_pretrained(args.compressor_path)
     compressor_config.num_hidden_layers = args.num_compressor_layers
     compressor = transformers.LlamaModel.from_pretrained(args.compressor_path, config=compressor_config)
-    compressor.resize_token_embeddings(len(enc_tokenizer))
+    compressor.resize_token_embeddings(len(cmp_tokenizer))
 
     pooling_layer = InferPoolingLayer(args)
 
