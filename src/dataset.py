@@ -21,7 +21,7 @@ class TrainDataset(Dataset):
     def __init__(
         self,
         filepath,
-        enc_tokenizer,
+        cmp_tokenizer,
         llm_tokenizer,
         max_doc_tokens,
         instruction_name,
@@ -36,7 +36,7 @@ class TrainDataset(Dataset):
     ):
         self.dataset = load_dataset('json', data_files=filepath, split='train')
         self.max_doc_tokens = max_doc_tokens
-        self.enc_tokenizer = enc_tokenizer
+        self.cmp_tokenizer = cmp_tokenizer
         self.llm_tokenizer = llm_tokenizer
         self.que_mask_ratio = que_mask_ratio
         self.max_num_documents = max_num_documents
@@ -61,7 +61,7 @@ class TrainDataset(Dataset):
         question = example['question']
         
         neg_documents = [
-            format_document(document, self.enc_tokenizer, self.max_doc_tokens)
+            format_document(document, self.cmp_tokenizer, self.max_doc_tokens)
             for document in example['ctxs'] if document['isgold'] is False
         ]
 
@@ -71,7 +71,7 @@ class TrainDataset(Dataset):
             random.shuffle(neg_documents)
             
         pos_documents = [
-            format_document(document, self.enc_tokenizer, self.max_doc_tokens)
+            format_document(document, self.cmp_tokenizer, self.max_doc_tokens)
             for document in example['ctxs'] if document['isgold'] is True
         ]
 
@@ -137,8 +137,8 @@ class TrainDataset(Dataset):
         answers = [instance['answers'] for instance in batch]
 
         llm_prefix_tokens = ['\nDocument:' for _ in enc_documents]
-        enc_que_outputs = self.enc_tokenizer(enc_questions, return_tensors='pt', padding=True, add_special_tokens=False)
-        enc_doc_outputs = self.enc_tokenizer(enc_documents, return_tensors='pt', padding=True, add_special_tokens=False)
+        enc_que_outputs = self.cmp_tokenizer(enc_questions, return_tensors='pt', padding=True, add_special_tokens=False)
+        enc_doc_outputs = self.cmp_tokenizer(enc_documents, return_tensors='pt', padding=True, add_special_tokens=False)
 
         llm_ins_outputs = self.llm_tokenizer(llm_instructions, return_tensors='pt', padding=True)
         llm_doc_outputs = self.llm_tokenizer(llm_documents, return_tensors='pt', padding=True, add_special_tokens=False)
@@ -186,7 +186,7 @@ class InferDataset(Dataset):
     def __init__(
         self,
         filepath,
-        enc_tokenizer,
+        cmp_tokenizer,
         llm_tokenizer,
         max_doc_tokens,
         instruction_name,
@@ -195,7 +195,7 @@ class InferDataset(Dataset):
     ):
         self.dataset = load_dataset('json', data_files=filepath, split='train')
         self.max_doc_tokens = max_doc_tokens
-        self.enc_tokenizer = enc_tokenizer
+        self.cmp_tokenizer = cmp_tokenizer
         self.llm_tokenizer = llm_tokenizer
         self.max_num_documents = max_num_documents
 
@@ -216,7 +216,7 @@ class InferDataset(Dataset):
         question = example['question']
         
         documents = [
-            format_document(document, self.enc_tokenizer, self.max_doc_tokens)
+            format_document(document, self.cmp_tokenizer, self.max_doc_tokens)
             for document in example['ctxs'][:self.max_num_documents]
         ]
 
@@ -249,8 +249,8 @@ class InferDataset(Dataset):
         llm_instructions = [self.instruction_text for _ in batch]
         answers = [instance['answers'] for instance in batch]
 
-        enc_que_outputs = self.enc_tokenizer(enc_questions, return_tensors='pt', padding=True, add_special_tokens=False)
-        enc_doc_outputs = self.enc_tokenizer(enc_documents, return_tensors='pt', padding=True, add_special_tokens=False)
+        enc_que_outputs = self.cmp_tokenizer(enc_questions, return_tensors='pt', padding=True, add_special_tokens=False)
+        enc_doc_outputs = self.cmp_tokenizer(enc_documents, return_tensors='pt', padding=True, add_special_tokens=False)
 
         llm_ins_outputs = self.llm_tokenizer(llm_instructions, return_tensors='pt', padding=True)
         llm_que_outputs = self.llm_tokenizer(llm_questions, return_tensors='pt', padding=True, add_special_tokens=False)

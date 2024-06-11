@@ -6,7 +6,7 @@ import torch
 import transformers
 from accelerate import Accelerator
 
-from src.args import JointArguments
+from src.args import QGCArguments
 from src.model import ModelWithQGC
 from src.dataset import TrainDataset
 from src.utils.constant import *
@@ -22,7 +22,7 @@ def get_model_param_count(model, trainable_only):
             param_count += param.numel()
     return param_count
 
-def load_dataloader(args: JointArguments, cmp_tokenizer, llm_tokenizer, split):
+def load_dataloader(args: QGCArguments, cmp_tokenizer, llm_tokenizer, split):
     if hasattr(args, f'{split}_data_path') and getattr(args, f'{split}_data_path') != None:
         filepath = getattr(args, f'{split}_data_path')
     else:
@@ -57,7 +57,7 @@ def load_dataloader(args: JointArguments, cmp_tokenizer, llm_tokenizer, split):
     return dataloader
 
 
-def main(args: JointArguments):
+def main(args: QGCArguments):
     transformers.trainer_utils.set_seed(args.seed)
 
     logger.info('load tokenizer ...')
@@ -392,7 +392,7 @@ def main(args: JointArguments):
 
 
 if __name__ == '__main__':
-    parser = transformers.HfArgumentParser(JointArguments)
+    parser = transformers.HfArgumentParser(QGCArguments)
     args = parser.parse_args_into_dataclasses()[0]
     logger.info(args)
     main(args)

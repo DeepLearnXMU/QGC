@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import List
 
 @dataclass
-class JointArguments:
+class QGCArguments:
     seed: int = 42
 
     # model args

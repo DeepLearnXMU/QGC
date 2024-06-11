@@ -6,7 +6,7 @@ import torch
 import transformers
 from accelerate import Accelerator
 
-from src.args import JointArguments
+from src.args import QGCArguments
 from src.model import ModelWithQGC
 from src.dataset import InferDataset
 from src.pooling_layers import InferPoolingLayer
@@ -16,7 +16,7 @@ from src.utils.metrics import benchmark_function_map
 logger = get_logger(__name__)
 
 
-def load_dataloader(args: JointArguments, cmp_tokenizer, llm_tokenizer):
+def load_dataloader(args: QGCArguments, cmp_tokenizer, llm_tokenizer):
     dataset = InferDataset(
         filepath=args.data_path,
         cmp_tokenizer=cmp_tokenizer,
@@ -34,7 +34,7 @@ def load_dataloader(args: JointArguments, cmp_tokenizer, llm_tokenizer):
     )
     return dataloader
 
-def main(args: JointArguments):
+def main(args: QGCArguments):
     transformers.trainer_utils.set_seed(args.seed)
 
     logger.info('load tokenizer ...')
@@ -173,7 +173,7 @@ def main(args: JointArguments):
             fw.write(element)
 
 if __name__ == '__main__':
-    parser = transformers.HfArgumentParser(JointArguments)
+    parser = transformers.HfArgumentParser(QGCArguments)
     args = parser.parse_args_into_dataclasses()[0]
     logger.info(args)
     main(args)
