@@ -1,7 +1,7 @@
-data_path=/path-to-data-file
-compressor_path=/path-to-compressor
-lm_model_path=/path-to-longchat-13b
-from_checkpoint=/path-to-checkpoint
+data_path=/path-to-test-data-file
+compressor_path=/path-to-llama-2-7B
+lm_model_path=/path-to-longchat-13B
+from_checkpoint=/path-to-compressor-checkpoint
 save_path=/path-to-save-generation
 
 batch_size=4
@@ -11,12 +11,12 @@ lm_model_hidden_size=5120
 num_compressor_layers=4
 num_compressor_encoder_layers=2
 benchmark_metric=accuracy
+instruction_name=base
 num_eval_documents=4
 pw_window_sizes=(2 4 6 8)
 pw_window_sizes_str=$(printf "_%s" "${pw_window_sizes[@]}")
 pw_window_sizes_str=${pw_window_sizes_str:1}
 
-echo num_eval_documents=${num_eval_documents}-pw=${pw_window_sizes_str}
 mkdir -p $save_path
 
 accelerate launch --config_file config/bf16.yaml \
@@ -35,4 +35,6 @@ accelerate launch --config_file config/bf16.yaml \
     --pw_window_sizes ${pw_window_sizes[@]} \
     --from_checkpoint $from_checkpoint \
     --benchmark_metric $benchmark_metric \
-    | tee ${save_path}/inference.log
+    --instruction_name $instruction_name \
+    --fix_compressor_mlp_parameters \
+    | tee ${save_path}/infer.log
